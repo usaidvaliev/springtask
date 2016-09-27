@@ -34,10 +34,6 @@ public class LinkedInProfileParser {
 		
 	}
 	
-	public void addProfileToDB(){
-		
-	}
-	
 	private void downloadProfileHTML(){
 		
 		Scanner sc=null;
@@ -79,8 +75,6 @@ public class LinkedInProfileParser {
 			e.printStackTrace();
 		}
 		
-//		if(profileData==null)return "";
-		
 		try {
 			sc=new Scanner(profileData);
 			while (sc.hasNextLine()) {
@@ -91,7 +85,6 @@ public class LinkedInProfileParser {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-//		return profileHTML;
+		profileData.delete();
 	}
 }
