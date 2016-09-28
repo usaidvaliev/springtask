@@ -1,43 +1,66 @@
 package com.example;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Scanner;
+import java.nio.file.Files;
 import java.util.zip.GZIPInputStream;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+
 public class LinkedInProfileParser {
 	
 	private LinkedInProfile profile;
-	private String profileHTML;
+	private File profileHTML;
 	
 	public LinkedInProfileParser(LinkedInProfile profile){
 		this.profile=profile;
 	}
 	
-
-	public void parseProfileParams(){
+	public void parseProfileParams() throws IOException{
 		downloadProfileHTML();
 		
-//		find photo URL
-		String imageInfo=profileHTML.substring(profileHTML.indexOf("image photo lazy-load")+26,profileHTML.indexOf("width")).trim();
-		String imageLink=imageInfo.substring(imageInfo.indexOf("data-delayed-url")+18, imageInfo.length()-1);
-		profile.setPhotoURL(imageLink);
-
-//		find name
+		Document doc=Jsoup.parse(profileHTML,"UTF-8");
 		
+//		find photo URL
+		String picURL=doc.select("div[class=\"profile-picture\"] img").attr("data-delayed-url").trim();
+		if(picURL!=null){
+			profile.setPhotoURL(picURL);
+		}else {
+			profile.setPhotoURL("[no_photo_for_current_profile]");
+		}
+//		System.out.println(profile.getPhotoURL());
+		
+//		find name
+		String profileName=doc.select("div[class=\"profile-overview-content\"] h1").html().trim();
+		profile.setName(profileName);
+//		System.out.println(profile.getName());
+		
+//		find current workplace
+		String curWorkPlace=doc.select("tr[data-section=\"currentPositionsDetails\"]").select("span").html().trim();
+		profile.setWorkplace(curWorkPlace);
+//		System.out.println(profile.getWorkplace());
+
+		deleteFileOnCompletion();
+	}
+	
+	private void deleteFileOnCompletion(){
+		try {
+			Files.delete(profileHTML.toPath());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	private void downloadProfileHTML(){
 		
-		Scanner sc=null;
-		File profileData=null;
 		URL conUrl=null;
 		HttpsURLConnection connection=null;
 		
@@ -51,9 +74,9 @@ public class LinkedInProfileParser {
 			connection.setRequestProperty("Accept-Encoding", "gzip, deflate, sdch");
 			
 			InputStream is=connection.getInputStream();
-			profileData=new File(profile.getId());
+			profileHTML=new File(profile.getId()+".html");
 
-			FileOutputStream fos=new FileOutputStream(profileData);
+			FileOutputStream fos=new FileOutputStream(profileHTML);
 			GZIPInputStream gzis=new GZIPInputStream(is);
 
 			int length;
@@ -74,17 +97,5 @@ public class LinkedInProfileParser {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		try {
-			sc=new Scanner(profileData);
-			while (sc.hasNextLine()) {
-				String line=sc.nextLine().trim();
-				if(line.indexOf("profile-overview-content")!=-1)profileHTML=line;
-			}
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		profileData.delete();
 	}
 }
