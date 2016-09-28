@@ -43,7 +43,7 @@ public class LinkedInProfileParser {
 //		System.out.println(profile.getName());
 		
 //		find current workplace
-		String curWorkPlace=doc.select("tr[data-section=\"currentPositionsDetails\"]").select("span").html().trim();
+		String curWorkPlace=doc.select("li[data-section=\"currentPositionsDetails\"]").select("header h5").html().trim();
 		profile.setWorkplace(curWorkPlace);
 //		System.out.println(profile.getWorkplace());
 
