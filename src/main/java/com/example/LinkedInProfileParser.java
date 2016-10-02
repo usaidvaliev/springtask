@@ -30,10 +30,10 @@ public class LinkedInProfileParser {
 		
 //		find photo URL
 		String picURL=doc.select("div[class=\"profile-picture\"] img").attr("data-delayed-url").trim();
-		if(picURL!=null){
+		if(picURL!=""){
 			profile.setPhotoURL(picURL);
 		}else {
-			profile.setPhotoURL("[no_photo_for_current_profile]");
+			profile.setPhotoURL("NO_PHOTO");
 		}
 //		System.out.println(profile.getPhotoURL());
 		
@@ -43,8 +43,9 @@ public class LinkedInProfileParser {
 //		System.out.println(profile.getName());
 		
 //		find current workplace
-		String curWorkPlace=doc.select("li[data-section=\"currentPositionsDetails\"]").select("header h5").html().trim();
+		String curWorkPlace=doc.select("tr[data-section=\"currentPositionsDetails\"]").select("span").html().trim();
 		profile.setWorkplace(curWorkPlace);
+		
 //		System.out.println(profile.getWorkplace());
 
 		deleteFileOnCompletion();
@@ -79,7 +80,7 @@ public class LinkedInProfileParser {
 			FileOutputStream fos=new FileOutputStream(profileHTML);
 			GZIPInputStream gzis=new GZIPInputStream(is);
 
-			int length;
+			int length=0;
 			byte b[]=new byte[2048];
 			
 			while ((length = gzis.read(b))!=-1) {
